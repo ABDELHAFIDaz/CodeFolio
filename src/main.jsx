@@ -4,8 +4,8 @@ import './index.css'
 import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+  // <StrictMode>
     <App />
-  </StrictMode>,1
+  /* </StrictMode> */
 )
 // strictMode runs the components twice during development only 
