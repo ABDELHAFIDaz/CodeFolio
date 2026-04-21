@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useReducer } from 'react'
 import { addProject, getProjects, deleteProject, logoutUser } from '../../services/FetchingService'
 import { Navigate, useNavigate } from 'react-router-dom'
 
@@ -6,9 +6,32 @@ import { Navigate, useNavigate } from 'react-router-dom'
 function Dashboard() {
     const [projects, setProjects] = useState([])
     const [showModal, setShowModal] = useState(false)
-    const [form, setForm] = useState({ title: '', description: '', stack: '' })
     const [msg, setMsg] = useState({ success: '', error: '' })
     const navigate = useNavigate()
+
+    const initialState = {title: '', description: '', stack: ''};
+
+    const Formreducer = (form, action) => {
+        switch(action.type){
+
+            case 'title':
+                return {...form, title: action.payload};
+
+            case 'description':
+                return {...form, description: action.payload};
+
+            case 'stack':
+                return {...form, stack: action.payload};
+
+            case 'empty':
+                return {...initialState};
+            
+            default:
+                return form;
+        }
+    }
+
+    const [form, dispatch] = useReducer(Formreducer, initialState);
 
     useEffect(() => {
         getProjects()
@@ -20,18 +43,19 @@ function Dashboard() {
 
         addProject(form)
             .then(data => {
-                console.log("response: ", data)
+
                 if (data.isAdded) {
                     setShowModal(false);
 
                     setMsg({ success: data.message, error: '' });
 
-                    let newPrjct = { 'id': data.id, ...form };
-                    setProjects([...projects, newPrjct]);
+                    setProjects([...projects, data.newProject]);
                 }
                 else {
                     setMsg({ success: '', error: data.message });
                 }
+
+                dispatch({type: 'empty'});
             })
     }
 
@@ -115,21 +139,21 @@ function Dashboard() {
                                         type="text"
                                         placeholder="Title"
                                         value={form.title}
-                                        onChange={e => setForm({ ...form, title: e.target.value })}
+                                        onChange={e => dispatch({type: 'title', payload: e.target.value})}
                                         className="border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black text-sm"
                                     />
                                     <textarea
                                         placeholder="Description"
                                         rows={3}
                                         value={form.description}
-                                        onChange={e => setForm({ ...form, description: e.target.value })}
+                                        onChange={e => dispatch({type: 'description', payload: e.target.value})}
                                         className="border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black text-sm resize-none"
                                     />
                                     <input
                                         type="text"
                                         placeholder="Stack (e.g. React · Node · MongoDB)"
                                         value={form.stack}
-                                        onChange={e => setForm({ ...form, stack: e.target.value })}
+                                        onChange={e => dispatch({type: 'stack', payload: e.target.value})}
                                         className="border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black text-sm"
                                     />
                                 </div>
